@@ -301,3 +301,42 @@ Tracks delivery operations.
 * Belongs to an order.
 * Uses a carrier.
 * Originates from a warehouse.
+
+
+## Foreign Keys
+
+suppliers.region_id
+→ regions.region_id
+
+products.supplier_id
+→ suppliers.supplier_id
+
+warehouses.region_id
+→ regions.region_id
+
+warehouses.manager_id
+→ employees.employee_id
+
+inventory.warehouse_id
+→ warehouses.warehouse_id
+
+inventory.product_id
+→ products.product_id
+
+orders.customer_id
+→ customers.customer_id
+
+order_items.order_id
+→ orders.order_id
+
+order_items.product_id
+→ products.product_id
+
+shipments.order_id
+→ orders.order_id
+
+shipments.carrier_id
+→ carriers.carrier_id
+
+shipments.warehouse_id
+→ warehouses.warehouse_id
