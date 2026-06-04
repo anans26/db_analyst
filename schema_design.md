@@ -2,11 +2,21 @@
 
 ## Business Overview
 
-This database models a supply chain and logistics company. It tracks suppliers, products, warehouses, inventory, customers, orders, shipments, carriers, and employees.
+This database models a supply chain and logistics company. It tracks suppliers, products, warehouses, inventory, customers, orders, carriers, and employees.
+
+The system is designed to support:
+
+* Inventory Management
+* Order Tracking
+* Warehouse Operations
+* Supplier Analysis
+* Customer Analytics
+* Logistics Reporting
+* AI-Powered Natural Language Analytics
 
 ---
 
-## Entity Relationship Overview
+# Entity Relationship Overview
 
 Region
 → Suppliers
@@ -25,21 +35,6 @@ Product
 
 Customer
 → Orders
-
-Order
-→ Order Items
-
-Product
-→ Order Items
-
-Order
-→ Shipments
-
-Carrier
-→ Shipments
-
-Warehouse
-→ Shipments
 
 Employee
 → Warehouse (Manager)
@@ -95,7 +90,7 @@ Stores employee information.
 
 ### Purpose
 
-Stores product suppliers.
+Stores supplier information.
 
 ### Columns
 
@@ -105,6 +100,7 @@ Stores product suppliers.
 | supplier_name | Supplier name              |
 | supplier_type | Supplier category          |
 | region_id     | Supplier region            |
+| contact_email | Supplier contact email     |
 
 ### Relationships
 
@@ -117,25 +113,25 @@ Stores product suppliers.
 
 ### Purpose
 
-Stores products sold by the company.
+Stores products supplied to the company.
 
 ### Columns
 
-| Column       | Description               |
-| ------------ | ------------------------- |
-| product_id   | Unique product identifier |
-| supplier_id  | Product supplier          |
-| product_name | Product name              |
-| category     | Product category          |
-| unit_price   | Product price             |
-| weight_kg    | Product weight            |
-| is_active    | Product status            |
+| Column       | Description                 |
+| ------------ | --------------------------- |
+| product_id   | Unique product identifier   |
+| supplier_id  | Product supplier            |
+| product_name | Product name                |
+| category     | Product category            |
+| unit_price   | Product price               |
+| weight_kg    | Product weight              |
+| is_active    | Product availability status |
 
 ### Relationships
 
 * Belongs to one supplier.
-* Appears in many order items.
 * Appears in inventory.
+* Will appear in order_items.
 
 ---
 
@@ -153,7 +149,7 @@ Stores warehouse information.
 | warehouse_name | Warehouse name              |
 | region_id      | Warehouse region            |
 | city           | Warehouse city              |
-| capacity       | Maximum capacity            |
+| capacity       | Maximum storage capacity    |
 | manager_id     | Warehouse manager           |
 
 ### Relationships
@@ -161,7 +157,6 @@ Stores warehouse information.
 * Belongs to one region.
 * Managed by one employee.
 * Stores inventory.
-* Ships orders.
 
 ---
 
@@ -169,18 +164,22 @@ Stores warehouse information.
 
 ### Purpose
 
-Tracks stock levels.
+Tracks stock levels across warehouses.
 
 ### Columns
 
-| Column         | Description             |
-| -------------- | ----------------------- |
-| inventory_id   | Unique inventory record |
-| warehouse_id   | Warehouse storing stock |
-| product_id     | Product being stored    |
-| stock_quantity | Available stock         |
-| reorder_level  | Minimum safe stock      |
-| last_updated   | Last update timestamp   |
+| Column        | Description              |
+| ------------- | ------------------------ |
+| inventory_id  | Unique inventory record  |
+| warehouse_id  | Warehouse storing stock  |
+| product_id    | Product being stored     |
+| quantity      | Available stock quantity |
+| reorder_level | Minimum stock threshold  |
+
+### Database Constraints
+
+* quantity >= 0
+* reorder_level >= 0
 
 ### Relationships
 
@@ -202,11 +201,11 @@ Stores customer information.
 | customer_name | Customer name              |
 | city          | Customer city              |
 | segment       | Customer segment           |
-| created_at    | Registration date          |
+| created_at    | Registration timestamp     |
 
 ### Relationships
 
-* Can place many orders.
+* One customer can place many orders.
 
 ---
 
@@ -223,44 +222,40 @@ Stores customer orders.
 | order_id     | Unique order identifier |
 | customer_id  | Customer placing order  |
 | order_date   | Order date              |
-| order_status | Order status            |
-| total_amount | Total order value       |
+| order_status | Current order status    |
+
+### Database Constraints
+
+Valid values for order_status:
+
+* Pending
+* Processing
+* Completed
+* Cancelled
 
 ### Relationships
 
 * Belongs to one customer.
-* Contains many order items.
-* May have shipments.
+* Will contain many order items.
+* Will have shipment records.
+
+### Notes
+
+Order totals are not stored directly.
+
+Order value is calculated from:
+
+quantity × unit_price
+
+stored in the order_items table.
 
 ---
 
-## 9. order_items
+## 9. carriers
 
 ### Purpose
 
-Stores products within an order.
-
-### Columns
-
-| Column        | Description                    |
-| ------------- | ------------------------------ |
-| order_item_id | Unique order item identifier   |
-| order_id      | Parent order                   |
-| product_id    | Product ordered                |
-| quantity      | Quantity ordered               |
-| unit_price    | Product price at purchase time |
-
-### Relationships
-
-* Links orders and products.
-
----
-
-## 10. carriers
-
-### Purpose
-
-Stores shipping carriers.
+Stores shipping carrier information.
 
 ### Columns
 
@@ -268,42 +263,15 @@ Stores shipping carriers.
 | ------------ | ------------------------- |
 | carrier_id   | Unique carrier identifier |
 | carrier_name | Carrier name              |
-| carrier_type | Carrier type              |
+| carrier_type | Carrier category          |
 
 ### Relationships
 
-* Handles shipments.
+* Will be used by shipment records.
 
 ---
 
-## 11. shipments
-
-### Purpose
-
-Tracks delivery operations.
-
-### Columns
-
-| Column        | Description                |
-| ------------- | -------------------------- |
-| shipment_id   | Unique shipment identifier |
-| order_id      | Associated order           |
-| carrier_id    | Carrier used               |
-| warehouse_id  | Origin warehouse           |
-| shipment_date | Date shipped               |
-| delivery_date | Date delivered             |
-| status        | Shipment status            |
-| delay_days    | Delivery delay             |
-| shipping_cost | Shipping cost              |
-
-### Relationships
-
-* Belongs to an order.
-* Uses a carrier.
-* Originates from a warehouse.
-
-
-## Foreign Keys
+# Foreign Keys
 
 suppliers.region_id
 → regions.region_id
@@ -326,17 +294,76 @@ inventory.product_id
 orders.customer_id
 → customers.customer_id
 
-order_items.order_id
-→ orders.order_id
+---
 
-order_items.product_id
-→ products.product_id
+# Planned Layer 4 Tables
 
-shipments.order_id
-→ orders.order_id
+These tables will be implemented in the next phase.
 
-shipments.carrier_id
-→ carriers.carrier_id
+## order_items
 
-shipments.warehouse_id
-→ warehouses.warehouse_id
+Purpose:
+
+Stores products contained within customer orders.
+
+Columns:
+
+* order_item_id
+* order_id
+* product_id
+* quantity
+* unit_price
+
+Relationships:
+
+* Links orders and products.
+* Preserves historical pricing.
+
+---
+
+## shipments
+
+Purpose:
+
+Tracks shipment and delivery operations.
+
+Columns:
+
+* shipment_id
+* order_id
+* carrier_id
+* warehouse_id
+* shipment_date
+* delivery_date
+* status
+* shipping_cost
+
+Database Constraints
+
+Valid values for shipment status:
+
+* In Transit
+* Delivered
+* Delayed
+* Cancelled
+
+Relationships:
+
+* Belongs to an order.
+* Uses a carrier.
+* Originates from a warehouse.
+
+---
+
+# Example Analytics Questions
+
+* Which products generate the highest revenue?
+* Which suppliers contribute the most products?
+* Which warehouses have the lowest inventory?
+* Which products are below reorder level?
+* How many orders are pending?
+* Which customer segment places the most orders?
+* Which region has the most suppliers?
+* What is the inventory distribution across warehouses?
+* Which warehouse stores the largest number of products?
+* What is the average order volume by customer segment?

@@ -1,11 +1,20 @@
-from sqlalchemy import text
 from db import engine
 
-with open("schema/layer1.sql", "r") as file:
-    sql = file.read()
+files = [
+    "schema/layer4.sql"
+]
 
-with engine.connect() as conn:
-    conn.execute(text(sql))
+with engine.raw_connection() as conn:
+
+    cursor = conn.cursor()
+
+    for file_name in files:
+
+        with open(file_name, "r") as file:
+            sql = file.read()
+
+        cursor.execute(sql)
+
     conn.commit()
 
-print("Layer 1 tables created successfully!")
+print("Schema created successfully!")
