@@ -1,7 +1,11 @@
 from pathlib import Path
-from db import engine
+import sys
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+sys.path.append(str(BASE_DIR))
+
+from db import engine
+
 
 files = [
     BASE_DIR / "schema" / "layer1.sql",

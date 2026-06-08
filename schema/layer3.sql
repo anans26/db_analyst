@@ -6,7 +6,7 @@ CREATE TABLE inventory (
     reorder_level INTEGER NOT NULL DEFAULT 50 CHECK (reorder_level >= 0),
 
     CONSTRAINT uq_inventory
-        UNIQUE (warehouse_id, product_id)
+        UNIQUE (warehouse_id, product_id),
 
     CONSTRAINT fk_inventory_warehouse
         FOREIGN KEY (warehouse_id)
